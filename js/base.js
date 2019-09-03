@@ -1,5 +1,5 @@
 window.base = {
-	g_restUrl: 'http://www.xianaxty.com/api/public/index.php/api/v1/',
+	g_restUrl: 'http://www.sstdc.top/api/public/index.php/api/v1/',
 
 	thirdapp_id:2,
 	test:666,
@@ -209,17 +209,7 @@ window.base = {
 					var loca = window.location;
 					window.location.href = loca.origin + loca.pathname;
 				} else if (res.solely_code == 200000) {
-					console.log(that.GetUrlRelativePath().substr(1, 2));
-					if (that.GetUrlRelativePath().substr(1, 2) == 'wx') {
-
-						localStorage.removeItem('merchant_token');
-						localStorage.removeItem('merchant_no');
-						window.location.href = './wxBusinessLogin.html'
-					} else {
-						localStorage.removeItem('user_token');
-						localStorage.removeItem('user_no');
-						that.getUserToken();
-					};
+					
 				} else {
 					params.sCallback && params.sCallback(res);
 				};
@@ -765,8 +755,32 @@ window.base = {
 		};
 		this.getData(allParams)
 	},
+	
+	addLog(param, callback) {	
+		var allParams = {
+			url: 'Common/Log/add',
+			type: 'post',
+			data: param,
+			sCallback: function(data) {
+				callback && callback(data);
+			}
+		};
+		this.getData(allParams)
+	},
+	
+	getLog(param, callback) {	
+		var allParams = {
+			url: 'Common/Log/get',
+			type: 'post',
+			data: param,
+			sCallback: function(data) {
+				callback && callback(data);
+			}
+		};
+		this.getData(allParams)
+	},
 
-
+	
 
 	messages: function(param, callback) {
 
@@ -799,7 +813,7 @@ window.base = {
 	login: function(param, callback) {
 
 		var allParams = {
-			url: 'Func/Common/loginByUp',
+			url: 'Project/Solely/login',
 			type: 'post',
 			data: param,
 			sCallback: function(data) {

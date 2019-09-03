@@ -37,19 +37,19 @@
 						<li>
 							<i class="icon iconfont">&#xe615;</i>
 							<div class="r">
-								<input class="edit" maxlength="11" type="text" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<input class="edit" v-model="submitData.login_name" maxlength="11" type="number" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
 							</div>
 						</li>
 						<li>
 							<i class="icon iconfont">&#xe629;</i>
 							<div class="r">
-								<input class="edit" type="password" placeholder="请输入登录密码"  />
+								<input class="edit" v-model="submitData.password" type="password" placeholder="请输入登录密码"  />
 							</div>
 						</li>
 					</ul>
 					<div class="oh"><span style="padding: 10px 5px 0 5px;float: right;" @click="showLogin">验证码登录</span></div>
 					<div class="submitBtn">
-						<button class="pubBtn" type="submit">确定</button>
+						<button class="pubBtn" type="submit"  @click="submit">确定</button>
 					</div>
 				</div>
 				
@@ -59,14 +59,14 @@
 						<li>
 							<i class="icon iconfont">&#xe615;</i>
 							<div class="r">
-								<input class="edit" maxlength="11" type="text" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<input v-model="submitData.login_name" class="edit" maxlength="11" type="text" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
 								<span class="hqyzm">获取验证码</span>
 							</div>
 						</li>
 						<li>
 							<i class="icon iconfont">&#xeaa0;</i>
 							<div class="r">
-								<input  class="edit" type="text" placeholder="请输入验证码"  onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<input  class="edit" v-model="submitData.code" type="text" placeholder="请输入验证码"  onkeyup="this.value=this.value.replace(/\D/g,'')" />
 							</div>
 						</li>
 					</ul>
@@ -82,25 +82,25 @@
 						<li>
 							<i class="icon iconfont">&#xe615;</i>
 							<div class="r">
-								<input class="edit" maxlength="11" type="text" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<input class="edit" v-model="submitData.login_name" maxlength="11" type="number" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
 								<span class="hqyzm">获取验证码</span>
 							</div>
 						</li>
 						<li>
 							<i class="icon iconfont">&#xeaa0;</i>
 							<div class="r">
-								<input class="edit" type="text" placeholder="请输入验证码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<input class="edit" v-model="submitData.code" type="number" placeholder="请输入验证码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
 							</div>
 						</li>
 						<li>
 							<i class="icon iconfont">&#xe629;</i>
 							<div class="r">
-								<input class="edit" type="password" placeholder="请输入登录密码"  />
+								<input class="edit" type="password" v-model="submitData.password" placeholder="请输入登录密码"  />
 							</div>
 						</li>
 					</ul>
 					<div class="submitBtn">
-						<button class="pubBtn" type="submit">确定</button>
+						<button class="pubBtn" type="submit" @click="register">确定</button>
 					</div>
 				</div>
 				
@@ -121,9 +121,12 @@
 		    data:function(){
 		        return {
 					is_show:false,
-					mainData: [],
-					labelData: [],
-					newsData:[],
+					submitData:{
+						login_name:'',
+						password:'',
+						code:'',
+						phone:''
+					},
 					num:1,
 					paginate: { 
 					    count: 0, 
@@ -144,49 +147,84 @@
 						self.num = num
 					}
 				},
+				
 				showLogin(){
 					const self=this;
 					self.is_show=!self.is_show
 				},
-				getMainData: function(id){
-				    var self = this;
-				    var postData = {};
-				    //postData.paginate = window.base.cloneForm(self.paginate);
-				    postData.searchItem = window.base.cloneForm(self.searchItem);
-					/*postData.getBefore ={
-					 	caseData:{
-							tableName:'Label',
-							searchItem:{
-							  parentid:['in',[146]]
-							},
-							middleKey:'menu_id',
-							key:'id',
-							condition:'in',
-						},
-					};*/
-
-					postData.getAfter = {
-						child: {
-							tableName: 'Label',
-							middleKey: 'id',
-							key: 'parentid',
-							searchItem: {
-								status: 1,
-							},
-							condition: '='
-						},
+				
+				submit() {
+					const self = this;
+					const postData = {
+						data:{
+							login_name: self.submitData.login_name,
+							password:self.submitData.password
+						}				
+					};	
+					/* postData.smsAuth = {
+						phone:self.submitData.login_name,						
+						code:self.submitData.code					,
+					}; */
+					var newObject = window.base.cloneForm(self.submitData);
+					delete newObject.code;
+					delete newObject.phone;
+					if (window.base.checkComplete(newObject)) {
+						const callback = (res) => {
+							if (res.solely_code == 100000) {
+								localStorage.setItem('user_token', res.token);
+								localStorage.setItem('user_no', res.info.user_no);						
+								window.base.setStorageArray('user_info', res.info, 'id', 999, 'unshift');
+								window.history.back(-1); 								
+							} else {
+								alert(res.msg)
+							}
+						}
+						window.base.login(postData, callback);
+					} else {
+						alert('请输入账号密码', 'none')
 					};
-				    var callback = function(res){
-				        console.log('getMainData', res);
-				        self.mainData.push.apply(self.mainData,res.info.data);
-				        for (var i = 0; i < self.mainData.length; i++) {
-				        	self[self.mainData[i].title] = self.mainData[i];
-				        };
-				        self.getNewsData()
-				    };
-					console.log('self.mainData',self.mainData)
-				    window.base.labelGet(postData, callback);
-				}
+				},
+				
+				register() {
+					const self = this;
+					
+					const postData = {
+						data:{
+							login_name:self.submitData.login_name,
+							password:self.submitData.password,	
+						}						
+					}
+					/* postData.smsAuth = {						
+						phone:self.submitData.phone,						
+						code:self.submitData.code					,
+					}; */
+					var newObject = window.base.cloneForm(self.submitData);
+					delete newObject.phone;
+					if (window.base.checkComplete(newObject)) {
+						
+					
+						
+						const callback = (res) => {
+							if (res.solely_code == 100000) {
+								alert(res.msg)
+								self.submitData = {																
+									phone:'',
+									code:'',
+									login_name:'',
+									password:''
+								};
+								self.num = 1;
+								self.is_show = false						
+							} else {
+								alert(res.msg)
+							}
+						}
+						window.base.register(postData, callback);
+					} else {
+						alert('请补全信息', 'none')
+					};
+				},
+				
 				
 		    }
 		});

@@ -9,10 +9,12 @@
 		<meta name="keywords" content="">
 		<title>贷款H5</title>
 		<script src="./js/vue.js"></script>
-		<script type="text/javascript" src="js/jquery.min.js"></script>
 		<script type="text/javascript" src="js/base.js"></script>
+		<script type="text/javascript" src="js/jquery.min.js"></script>
 		<script type="text/javascript" src="js/swipe.js"></script>
 		<script type="text/javascript" src="js/jquery.sslide.js"></script>
+		
+		
 		<link type="text/css" rel="stylesheet" href="font/iconfont.css">
 		<link type="text/css" rel="stylesheet" href="css/public.css">
 		<link rel="stylesheet" type="text/css" href="css/loan.css">
@@ -30,8 +32,8 @@
 		<!-- 页面头部公共轮播banner -->
 		<div class="ind_Tbanner pr wzxq-banner oh">
 			<ul class="swiper-wrapper">
-				<li class="swiper-slide" v-for="(item,index) in swipeBanner" :key="index"> 
-					<img :src="item" alt="" /> 
+				<li class="swiper-slide" v-for="(item,index) in labelData" :key="index"> 
+					<img :src="item.mainImg&&item.mainImg[0]?item.mainImg[0].url:''" alt="" /> 
 				</li>
 			</ul>
 			<div id="bannerFooter" class="pa oh btnav" ></div>
@@ -44,8 +46,8 @@
 			<div class="ind-xmu-lunbo oh fs14">
 				<div class="bd">
 					<ul class="infoList">
-						<li v-for="(item,index) in timeNews" :key="index">
-							<a href="#">{{item}}</a>
+						<li v-for="(item,index) in newsData" :key="index">
+							<a href="#">{{item.description}}</a>
 						</li>
 					</ul>
 				</div>
@@ -59,20 +61,20 @@
 		
 		<div class="productList mgt10">
 			<ul>
-				<li v-for="(item,index) in productList" :key="index">
-					<div class="pro_tit"><img class="icon" src="images/icon3.png" alt="">{{item.pro_tit}}</div>
+				<li v-for="(item,index) in mainData" :key="index">
+					<div class="pro_tit"><img class="icon" :src="item.mainImg&&item.mainImg[0]?item.mainImg[0].url:''" alt="">{{item.title}}</div>
 					<div class="cont">
 						<div class="left">
-							<h1>{{item.price}}</h1>
+							<h1>{{item.small_title}}</h1>
 							<p>额度范围(元)</p>
 						</div>
 						<div class="middle">
-							<p>14小时放款</p>
-							<p>{{item.Interest}}</p>
-							<p class="leng">{{item.term_loan}}</p>
+							<p>{{item.description}}放款</p>
+							<p>月利率{{item.passage1}}</p>
+							<p class="leng">贷款期限{{item.keywords}}</p>
 						</div>
 						<div class="right">
-							<button class="btn" type="button" @click="showAlert">立即申请</button>
+							<button class="btn" type="button" @click="showAlert(index)">立即申请</button>
 						</div>
 					</div>
 					<div class="need"><em class="xu">需</em>认证运营商可申请</div>
@@ -87,32 +89,17 @@
 		<!-- 注册弹框 -->
 		<div class="alertBox" v-if="is_show">
 			<div class="alert_cont center">
-				<div class="closebtn" @click="showAlert">×</div>
-				<h1>您还没有注册，暂时使用不了，请尽快注册哟~</h1>
+				<div class="closebtn" @click="close">×</div>
+				<h1>您还没有登录，暂时使用不了，请尽快注册哟~</h1>
 				<img class="noImg" src="images/icon4.png" alt="">
-				<a class="go_btn pubBtn" href="login.html">去注册</a>
+				<a class="go_btn pubBtn" href="login.html">去登录</a>
 			</div>
 		</div>
 
 	</div>
 </body>
 
-<script>
-	$(function(){
-		// banner 轮播
-		var banner = new Swiper('.ind_Tbanner', {
-			 speed:400,
-			 autoplay:2500,
-			 autoplayDisableOnInteraction:false,
-			 loop:true,
-			 pagination: '.ind_Tbanner .btnav',
-			 onInit:function(){},
-			 paginationClickable: true
-		});
-		// 消息滚动
-		$(".ind-xmu-lunbo").slide({mainCell:".bd ul",autoPage:true,effect:"top",autoPlay:true,vis:1});
-	})
-</script>
+
 	
 <script type="text/javascript">
 		var app = new Vue({
@@ -121,110 +108,152 @@
 		        return {
 		        	banner_index:0,
 					is_show:false,
-					wx_show:2,
+					
 					mainData: [],
 					labelData: [],
 					newsData:[],
-					swipeBanner:[
-						"images/banner-img.png",
-						"images/banner-img.png",
-						"images/banner-img.png"
-					],
-					timeNews:[
-						"1111消息消息消息消息消息消息消息消息消息消息",
-						"2222消息消息消息消息消息消息消息消息消息消息",
-						"3333消息消息消息消息消息消息消息消息消息消息",
-						"4444消息消息消息消息消息消息消息消息消息消息"
-					],
-					productList:[
-						{
-							pro_tit:"1享贷款",
-							price:"1000-2万元",
-							Interest:"月利率0.5%~2.0%",
-							term_loan:"贷款期限3~12月"
-						},
-						{
-							pro_tit:"2享贷款",
-							price:"2000-5万元",
-							Interest:"月利率0.3%~1.6%",
-							term_loan:"贷款期限5~10月"
-						},
-						{
-							pro_tit:"3享贷款",
-							price:"8000-5万元",
-							Interest:"月利率0.2%~3.0%",
-							term_loan:"贷款期限5~12月"
-						}
-						
-						
-						
-					],
+					
 					paginate: { 
 					    count: 0, 
 					    currentPage: 1, 
 					    pagesize:6, 
 					    is_page: true, 
 					},
-					searchItem:{ 
-						thirdapp_id: 2,
-						title:['in',[' ',' ']]
-					},
-					首页轮播:[]
+					searchItem:{
+						thirdapp_id:2
+					}
+					
 		        }
 		    },
 		    created:function () {
 		        var self = this;
-				window.base.bus.$emit('to_contentTwo',{paginate:self.paginate});
-				self.getMainData();	
+				self.getNewsData();
+				self.getMainData();
+				self.getLabelData()
 				
 		    },
 		    methods: {
-				showAlert: function(){
+				
+				showAlert(index){
 					var self = this;
-					self.is_show = !self.is_show
+					if(localStorage.getItem('user_token')){
+						const postData = {
+							token:localStorage.getItem('user_token'),
+							data:{
+								type:1,
+								user_no:localStorage.getItem('user_no'),
+								behavior:self.mainData[index].id,
+								thirdapp_id:2
+							}
+						};
+						const callback = (res) => {
+							if(res.solely_code==100000){
+								window.open(self.mainData[index].passage2)
+							}else{
+								alert(res.msg)
+							}
+						};
+						window.base.addLog(postData, callback);
+						
+					}else{
+						self.is_show = true
+					}			
 				},
 				
-				getMainData: function(id){
-				    var self = this;
-				    var postData = {};
-				    //postData.paginate = window.base.cloneForm(self.paginate);
-				    postData.searchItem = window.base.cloneForm(self.searchItem);
-					/*postData.getBefore ={
-					 	caseData:{
-							tableName:'Label',
-							searchItem:{
-							  parentid:['in',[146]]
-							},
-							middleKey:'menu_id',
-							key:'id',
-							condition:'in',
-						},
-					};*/
-
-					postData.getAfter = {
-						child: {
-							tableName: 'Label',
-							middleKey: 'id',
-							key: 'parentid',
-							searchItem: {
-								status: 1,
-							},
-							condition: '='
+				close(){
+					const self = this;
+					self.is_show = false
+				},
+				
+				getNewsData() {
+					const self = this;
+					const postData = {
+						searchItem: {
+							thirdapp_id: 2,
 						},
 					};
+					postData.getBefore = {
+						parent: {
+							tableName: 'Label',
+							searchItem: {
+								title: ['=', ['消息']],
+							},
+							middleKey: 'parentid',
+							key: 'id',
+							condition: 'in',
+						},
+					};
+					
+					const callback = (res) => {
+						if (res.info.data.length > 0) {
+							self.newsData.push.apply(self.newsData, res.info.data)
+						}
+						console.log('self.newsData', self.newsData)
+					};
+					window.base.labelGet(postData, callback);
+				},
+				
+				
+				getLabelData() {
+					const self = this;
+					const postData = {
+						searchItem: {
+							thirdapp_id: 2,
+						},
+					};
+					postData.getBefore = {
+						parent: {
+							tableName: 'Label',
+							searchItem: {
+								title: ['=', ['首页轮播']],
+							},
+							middleKey: 'parentid',
+							key: 'id',
+							condition: 'in',
+						},
+					};
+					console.log('postData', postData)
+					const callback = (res) => {
+						if (res.info.data.length > 0) {
+							self.labelData.push.apply(self.labelData, res.info.data)
+						}
+					};
+					window.base.labelGet(postData, callback);
+				},
+				
+				getMainData(){
+				    var self = this;
+				    var postData = {};
+					postData.paginate = window.base.cloneForm(self.paginate);
+				    postData.searchItem = window.base.cloneForm(self.searchItem);
+					postData.order = {
+						listorder:'desc'
+					}
 				    var callback = function(res){
 				        console.log('getMainData', res);
-				        self.mainData.push.apply(self.mainData,res.info.data);
-				        for (var i = 0; i < self.mainData.length; i++) {
-				        	self[self.mainData[i].title] = self.mainData[i];
-				        };
-				        self.getNewsData()
+				        self.mainData.push.apply(self.mainData,res.info.data);		        
 				    };
 					console.log('self.mainData',self.mainData)
-				    window.base.labelGet(postData, callback);
+				    window.base.articleGet(postData, callback);
 				}
 				
 		    }
 		});
+	</script>
+	<script>
+		$(function(){
+			// banner 轮播
+			var banner = new Swiper('.ind_Tbanner', {
+				 speed:400,
+				 autoplay:2500,
+				 autoplayDisableOnInteraction:false,
+				 loop:true,
+				 pagination: '.ind_Tbanner .btnav',
+				 onInit:function(){},
+				 paginationClickable: true
+			});
+			// 消息滚动
+			$(".ind-xmu-lunbo").slide({mainCell:".bd ul",autoPage:true,effect:"top",autoPlay:true,vis:1});
+		})
 	</script>
 </html>

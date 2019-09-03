@@ -29,19 +29,22 @@
 		
 		<div class="productList">
 			<ul>
-				<li v-for="(item,index) in productList" :key="index">
-					<div class="fs14 line36 bordB1 mgb5" style="color: #888;">申请时间：{{item.historyTime}}</div>
-					<div class="pro_tit"><img class="icon" src="images/icon3.png" alt="">{{item.pro_tit}}</div>
+				<li v-for="(item,index) in mainData" :key="index">
+					<div class="fs14 line36 bordB1 mgb5" style="color: #888;">申请时间：{{item.create_time}}</div>
+					<div class="pro_tit"><img class="icon" :src="item.child&&item.child[0].mainImg&&item.child[0].mainImg[0]?item.child[0].mainImg[0].url:''" alt="">
+					{{item.child&&item.child[0]?item.child[0].title:''}}
+					</div>
 					<div class="cont">
 						<div class="left">
-							<h1>{{item.price}}</h1>
+							<h1>{{item.child&&item.child[0]?item.child[0].title:''}}</h1>
 							<p>额度范围(元)</p>
 						</div>
 						<div class="middle">
-							<p>14小时放款</p>
-							<p>{{item.Interest}}</p>
-							<p class="leng">{{item.term_loan}}</p>
+							<p>{{item.child&&item.child[0]?item.child[0].description:''}}放款</p>
+							<p>{{item.child&&item.child[0]?item.child[0].passage1:''}}</p>
+							<p class="leng">{{item.child&&item.child[0]?item.child[0].keywords:''}}</p>
 						</div>
+						
 						<div class="right">
 						</div>
 					</div>
@@ -51,15 +54,7 @@
 		</div>
 
 		
-		<!-- 注册弹框 -->
-		<div class="alertBox" v-if="is_show">
-			<div class="alert_cont center">
-				<div class="closebtn" @click="showAlert">×</div>
-				<h1>您还没有注册，暂时使用不了，请尽快注册哟~</h1>
-				<img class="noImg" src="images/icon4.png" alt="">
-				<a class="go_btn pubBtn" href="#">去注册</a>
-			</div>
-		</div>
+		
 
 	</div>
 </body>
@@ -70,24 +65,10 @@
 		    el: '#app',
 		    data:function(){
 		        return {
-		        	banner_index:0,
-					is_show:false,
-					wx_show:2,
-					current:1,
+		        	
 					mainData: [],
-					labelData: [],
-					newsData:[],
-					swipeBanner:[
-						"images/banner-img.png",
-						"images/banner-img.png",
-						"images/banner-img.png"
-					],
-					timeNews:[
-						"1111消息消息消息消息消息消息消息消息消息消息",
-						"2222消息消息消息消息消息消息消息消息消息消息",
-						"3333消息消息消息消息消息消息消息消息消息消息",
-						"4444消息消息消息消息消息消息消息消息消息消息"
-					],
+					
+					
 					productList:[
 						{
 							historyTime:"2019年6月5日",
@@ -111,53 +92,33 @@
 					    pagesize:6, 
 					    is_page: true, 
 					},
-					searchItem:{ 
-						thirdapp_id: 2,
-						title:['in',[' ',' ']]
-					},
+					
 					首页轮播:[]
 		        }
 		    },
 		    created:function () {
 		        var self = this;
-				window.base.bus.$emit('to_contentTwo',{paginate:self.paginate});
 				self.getMainData();	
 				
 		    },
 		    methods: {
-				showAlert: function(){
-					var self = this;
-					self.is_show = !self.is_show
-				},
-				change(current) {
-					const self = this;
-					if(current!=self.current){
-						self.current = current
-					}
-				},
+				
 				
 				getMainData: function(id){
 				    var self = this;
-				    var postData = {};
+				    var postData = {
+						token:localStorage.getItem('user_token')
+					};
 				    //postData.paginate = window.base.cloneForm(self.paginate);
-				    postData.searchItem = window.base.cloneForm(self.searchItem);
-					/*postData.getBefore ={
-					 	caseData:{
-							tableName:'Label',
-							searchItem:{
-							  parentid:['in',[146]]
-							},
-							middleKey:'menu_id',
-							key:'id',
-							condition:'in',
-						},
-					};*/
-
+				    postData.searchItem = {
+						type:1,
+						behavior:['>',0]
+					};
 					postData.getAfter = {
 						child: {
-							tableName: 'Label',
-							middleKey: 'id',
-							key: 'parentid',
+							tableName: 'Article',
+							middleKey: 'behavior',
+							key: 'id',
 							searchItem: {
 								status: 1,
 							},
@@ -166,14 +127,15 @@
 					};
 				    var callback = function(res){
 				        console.log('getMainData', res);
-				        self.mainData.push.apply(self.mainData,res.info.data);
-				        for (var i = 0; i < self.mainData.length; i++) {
-				        	self[self.mainData[i].title] = self.mainData[i];
-				        };
-				        self.getNewsData()
+						if(res.info.data.length>0){
+							 self.mainData.push.apply(self.mainData,res.info.data);
+						}else{
+							alert('暂无记录')
+						}
+				       
 				    };
 					console.log('self.mainData',self.mainData)
-				    window.base.labelGet(postData, callback);
+				    window.base.getLog(postData, callback);
 				}
 				
 		    }
