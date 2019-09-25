@@ -73,6 +73,19 @@ window.base = {
 		}
 
 	},
+	
+	sendCode: function(param, callback) {
+	
+		var allParams = {
+			url: 'Project/Solely/getCode',
+			type: 'post',
+			data: param,
+			sCallback: function(data) {
+				callback && callback(data);
+			}
+		};
+		this.getData(allParams)
+	},
 
 	directPay: function(param, callback) {
 		var allParams = {
@@ -109,14 +122,14 @@ window.base = {
 		return count.toFixed(2);
 	},
 
-	getMerchantToken: function(callback) {
+	getProjectToken: function(callback) {
 		var href = window.location.href;
 		console.log('href', href);
-		var token = localStorage.getItem('merchant_token');
+		var token = localStorage.getItem('user_token');
 		if (token) {
 			callback && callback();
 		} else {
-			window.location.href = './wxBusinessLogin.html'
+			window.location.href = './login.html'
 		};
 	},
 
@@ -209,7 +222,7 @@ window.base = {
 					var loca = window.location;
 					window.location.href = loca.origin + loca.pathname;
 				} else if (res.solely_code == 200000) {
-					
+					window.location.href  = './login.html'
 				} else {
 					params.sCallback && params.sCallback(res);
 				};

@@ -30,10 +30,10 @@
 		<div class="h50"></div>
 		
 		<!-- 页面头部公共轮播banner -->
-		<div class="ind_Tbanner pr wzxq-banner oh">
-			<ul class="swiper-wrapper">
-				<li class="swiper-slide" v-for="(item,index) in labelData" :key="index"> 
-					<img :src="item.mainImg&&item.mainImg[0]?item.mainImg[0].url:''" alt="" /> 
+		<div class="ind_Tbanner pr wzxq-banner oh" style="height: 180px;">
+			<ul class="swiper-wrapper" style="height: 180px;">
+				<li class="swiper-slide" v-for="(item,index) in labelData" :key="index" style="height: 180px;"> 
+					<img :src="item.mainImg&&item.mainImg[0]?item.mainImg[0].url:''" alt="" style="height: 180px;"/> 
 				</li>
 			</ul>
 			<div id="bannerFooter" class="pa oh btnav" ></div>
@@ -90,7 +90,7 @@
 		<div class="alertBox" v-if="is_show">
 			<div class="alert_cont center">
 				<div class="closebtn" @click="close">×</div>
-				<h1>您还没有登录，暂时使用不了，请尽快注册哟~</h1>
+				<h1>您还没有登录，暂时使用不了，请尽快登录哟~</h1>
 				<img class="noImg" src="images/icon4.png" alt="">
 				<a class="go_btn pubBtn" href="login.html">去登录</a>
 			</div>
@@ -132,6 +132,12 @@
 				self.getLabelData()
 				
 		    },
+			
+			onShow(){
+				const self = this;
+				self.is_show = false
+			},
+			
 		    methods: {
 				
 				showAlert(index){
@@ -148,7 +154,7 @@
 						};
 						const callback = (res) => {
 							if(res.solely_code==100000){
-								window.open(self.mainData[index].passage2)
+								window.location.href = self.mainData[index].passage2
 							}else{
 								alert(res.msg)
 							}

@@ -60,7 +60,8 @@
 							<i class="icon iconfont">&#xe615;</i>
 							<div class="r">
 								<input v-model="submitData.login_name" class="edit" maxlength="11" type="text" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
-								<span class="hqyzm">获取验证码</span>
+								<div class="hqyzm" style="z-index: 9998;"  @click="sendCodeTwo" v-if="!hasSendTwo">{{text}}</div>
+								<span class="hqyzm" v-if="hasSendTwo">{{text}}</span>
 							</div>
 						</li>
 						<li>
@@ -82,8 +83,9 @@
 						<li>
 							<i class="icon iconfont">&#xe615;</i>
 							<div class="r">
-								<input class="edit" v-model="submitData.login_name" maxlength="11" type="number" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
-								<span class="hqyzm">获取验证码</span>
+								<input class="edit" style="width: 66%;" v-model="submitData.login_name" maxlength="11" type="number" placeholder="请输入手机号码" onkeyup="this.value=this.value.replace(/\D/g,'')" />
+								<div class="hqyzm" style="z-index: 9998;"  @click="sendCode" v-if="!hasSend">{{text}}</div>
+								<span class="hqyzm" v-if="hasSend">{{text}}</span>
 							</div>
 						</li>
 						<li>
@@ -99,6 +101,10 @@
 							</div>
 						</li>
 					</ul>
+					<div style="margin-top: 20px;text-align: center;">注册即同意<a href="articleDetail.html?title=虫虫借款助手服务协议" 
+					style="text-decoration: underline;color: #0066CC;">《虫虫借款助手服务协议》</a>
+					和<br><a href="articleDetail.html?title=用户隐私保护政策" style="text-decoration: underline;color: #0066CC;">
+					《用户隐私保护政策》</a>。</div>
 					<div class="submitBtn">
 						<button class="pubBtn" type="submit" @click="register">确定</button>
 					</div>
@@ -125,7 +131,7 @@
 						login_name:'',
 						password:'',
 						code:'',
-						phone:''
+						
 					},
 					num:1,
 					paginate: { 
@@ -137,7 +143,13 @@
 					searchItem:{ 
 						thirdapp_id: 2,
 						title:['in',[' ',' ']]
-					}
+					},
+					currentTime:61,
+					text:'获取验证码',
+					hasSend:false,
+					currentTimeTwo:61,
+					textTwo:'获取验证码',
+					hasSendTwo:false
 		        }
 		    },
 		    methods: {
@@ -161,20 +173,24 @@
 							password:self.submitData.password
 						}				
 					};	
-					/* postData.smsAuth = {
-						phone:self.submitData.login_name,						
-						code:self.submitData.code					,
-					}; */
+					if(self.is_show&&num==1){
+						postData.smsAuth = {
+							phone:self.submitData.login_name,						
+							code:self.submitData.code					,
+						};
+					}
+					
 					var newObject = window.base.cloneForm(self.submitData);
 					delete newObject.code;
 					delete newObject.phone;
 					if (window.base.checkComplete(newObject)) {
 						const callback = (res) => {
 							if (res.solely_code == 100000) {
+								alert('登陆成功', 'none')
 								localStorage.setItem('user_token', res.token);
 								localStorage.setItem('user_no', res.info.user_no);						
 								window.base.setStorageArray('user_info', res.info, 'id', 999, 'unshift');
-								window.history.back(-1); 								
+								window.location.href = document.referrer; 							
 							} else {
 								alert(res.msg)
 							}
@@ -194,21 +210,18 @@
 							password:self.submitData.password,	
 						}						
 					}
-					/* postData.smsAuth = {						
-						phone:self.submitData.phone,						
+					postData.smsAuth = {						
+						phone:self.submitData.login_name,						
 						code:self.submitData.code					,
-					}; */
+					};
 					var newObject = window.base.cloneForm(self.submitData);
-					delete newObject.phone;
-					if (window.base.checkComplete(newObject)) {
-						
 					
-						
+					if (window.base.checkComplete(newObject)) {						
 						const callback = (res) => {
 							if (res.solely_code == 100000) {
 								alert(res.msg)
 								self.submitData = {																
-									phone:'',
+									
 									code:'',
 									login_name:'',
 									password:''
@@ -225,6 +238,90 @@
 					};
 				},
 				
+				sendCode(){
+					var self = this;
+					console.log(111)
+					if(self.hasSend){
+						return;
+					};
+					var phone = self.submitData.login_name;
+					
+					if (phone.trim().length != 11 || !/^1[3|4|5|6|7|8|9]\d{9}$/.test(phone)) {
+						
+						alert('请输入正确的手机号码');
+						return;
+					}
+					var postData = {
+						phone:self.submitData.login_name
+					};
+					var callback = function(res){
+						if(res.solely_code==100000){
+							self.hasSend = true;
+							var interval = setInterval(function() {
+								self.currentTime--; //每执行一次让倒计时秒数减一
+							
+								self.text=self.currentTime + 's';//按钮文字变成倒计时对应秒数
+								
+								//如果当秒数小于等于0时 停止计时器 且按钮文字变成重新发送 且按钮变成可用状态 倒计时的秒数也要恢复成默认秒数 即让获取验证码的按钮恢复到初始化状态只改变按钮文字
+								if (self.currentTime <= 0) {
+									clearInterval(interval)
+									
+									self.hasSend = true;
+									self.text='重新发送';
+									self.currentTime= 61;
+									
+								}
+								
+							}, 1000);
+						}else{
+							alert('发送失败');
+						};
+					};
+					window.base.sendCode(postData, callback);
+				},
+				
+				
+				sendCodeTwo(){
+					var self = this;
+					console.log(111)
+					if(self.hasSendTwo){
+						return;
+					};
+					var phone = self.submitData.login_name;
+					
+					if (phone.trim().length != 11 || !/^1[3|4|5|6|7|8|9]\d{9}$/.test(phone)) {
+						
+						alert('请输入正确的手机号码');
+						return;
+					}
+					var postData = {
+						phone:self.submitData.login_name
+					};
+					var callback = function(res){
+						if(res.solely_code==100000){
+							self.hasSendTwo = true;
+							var interval = setInterval(function() {
+								self.currentTimeTwo--; //每执行一次让倒计时秒数减一
+							
+								self.text=self.currentTimeTwo + 's';//按钮文字变成倒计时对应秒数
+								
+								//如果当秒数小于等于0时 停止计时器 且按钮文字变成重新发送 且按钮变成可用状态 倒计时的秒数也要恢复成默认秒数 即让获取验证码的按钮恢复到初始化状态只改变按钮文字
+								if (self.currentTimeTwo <= 0) {
+									clearInterval(interval)
+									
+									self.hasSendTwo = true;
+									self.textTwo='重新发送';
+									self.currentTimeTwo= 61;
+									
+								}
+								
+							}, 1000);
+						}else{
+							alert('发送失败');
+						};
+					};
+					window.base.sendCode(postData, callback);
+				},
 				
 		    }
 		});

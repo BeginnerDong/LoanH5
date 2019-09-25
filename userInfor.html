@@ -31,19 +31,22 @@
 				<ul>
 					<li>
 						<span class="name">电话：</span>
-						<input class="edit" type="text" placeholder="请输入您的电话" onkeyup="this.value=this.value.replace(/\D/g,'')"  maxlength="11">
+						<input class="edit" v-model="submitData.phone" type="number" placeholder="请输入您的电话" onkeyup="this.value=this.value.replace(/\D/g,'')"  maxlength="11">
 					</li>
 					<li>
 						<span class="name">验证码：</span>
-						<input class="edit" style="width: 50%;" type="text" placeholder="请输入验证码" onkeyup="this.value=this.value.replace(/\D/g,'')" >
-						<span class="yamTest">获取验证码</span>
+						<input class="edit" style="width: 50%;" v-model="submitData.code" type="number" placeholder="请输入验证码" onkeyup="this.value=this.value.replace(/\D/g,'')" >
+						
+						<span class="yamTest"  @click="sendCode" v-if="!hasSend">{{text}}</span>
+						<span class="yamTest" v-if="hasSend">{{text}}</span>
 					</li>
 				</ul>
 			</form>
+			<div   style="width: 80%;margin: 100px auto 50px auto;">
+				<div @click="userInfoUpdate" class="pubBtn" >确认</div>
+			</div>
 		</div>
-		<div style="width: 80%;margin: 100px auto 50px auto;">
-			<a class="pubBtn" href="#">确认</a>
-		</div>
+		
 
 	</div>
 </body>
@@ -55,62 +58,111 @@
 		    data:function(){
 		        return {
 					is_show:false,
-					mainData: [],
-					labelData: [],
-					newsData:[],
-					paginate: { 
-					    count: 0, 
-					    currentPage: 1, 
-					    pagesize:6, 
-					    is_page: true, 
+					mainData: {},
+					submitData:{
+						phone:'',
+						code:''
 					},
-					searchItem:{ 
-						thirdapp_id: 2,
-						title:['in',[' ',' ']]
-					}
+					currentTime:61,
+					text:'获取验证码',
+					hasSend:false,
 		        }
 		    },
+		    created:function () {
+		        var self = this;
+		    	self.getMainData();	
+		    	
+		    },
 		    methods: {
+		    	
+		    	
+		    	getMainData: function(id){
+		    	    var self = this;
+		    	    var postData = {
+		    			token:localStorage.getItem('user_token'),
+		    		};
+		    	    var callback = function(res){
+		    	       if(res.solely_code==100000){
+						   self.mainData = res.info.data[0]
+						   
+						   self.submitData.phone = self.mainData.login_name
+					   }	    	       
+		    	    };
+		    		console.log('self.submitData',self.submitData)
+		    	    window.base.userGet(postData, callback);
+		    	},
 				
-				getMainData: function(id){
-				    var self = this;
-				    var postData = {};
-				    //postData.paginate = window.base.cloneForm(self.paginate);
-				    postData.searchItem = window.base.cloneForm(self.searchItem);
-					/*postData.getBefore ={
-					 	caseData:{
-							tableName:'Label',
-							searchItem:{
-							  parentid:['in',[146]]
-							},
-							middleKey:'menu_id',
-							key:'id',
-							condition:'in',
-						},
-					};*/
-
-					postData.getAfter = {
-						child: {
-							tableName: 'Label',
-							middleKey: 'id',
-							key: 'parentid',
-							searchItem: {
-								status: 1,
-							},
-							condition: '='
-						},
+				sendCode(){
+					var self = this;
+					console.log(111)
+					if(self.hasSend){
+						return;
 					};
-				    var callback = function(res){
-				        console.log('getMainData', res);
-				        self.mainData.push.apply(self.mainData,res.info.data);
-				        for (var i = 0; i < self.mainData.length; i++) {
-				        	self[self.mainData[i].title] = self.mainData[i];
-				        };
-				        self.getNewsData()
-				    };
-					console.log('self.mainData',self.mainData)
-				    window.base.labelGet(postData, callback);
-				}
+					var phone = self.submitData.phone;
+					
+					if (phone.trim().length != 11 || !/^1[3|4|5|6|7|8|9]\d{9}$/.test(phone)) {
+						
+						alert('请输入正确的手机号码');
+						return;
+					}
+					var postData = {
+						phone:self.submitData.phone
+					};
+					var callback = function(res){
+						if(res.solely_code==100000){
+							self.hasSend = true;
+							var interval = setInterval(function() {
+								self.currentTime--; //每执行一次让倒计时秒数减一
+							
+								self.text=self.currentTime + 's';//按钮文字变成倒计时对应秒数
+								
+								//如果当秒数小于等于0时 停止计时器 且按钮文字变成重新发送 且按钮变成可用状态 倒计时的秒数也要恢复成默认秒数 即让获取验证码的按钮恢复到初始化状态只改变按钮文字
+								if (self.currentTime <= 0) {
+									clearInterval(interval)
+									
+									self.hasSend = true;
+									self.text='重新发送';
+									self.currentTime= 61;
+									
+								}
+								
+							}, 1000);
+						}else{
+							alert('发送失败');
+						};
+					};
+					window.base.sendCode(postData, callback);
+				},
+				
+				userInfoUpdate() {
+					const self = this;
+					console.log(111)
+					const postData = {
+						token:localStorage.getItem('user_token'),
+						data:{
+							phone:self.submitData.phone,
+						}						
+					}
+					postData.smsAuth = {						
+						phone:self.submitData.phone,						
+						code:self.submitData.code					,
+					};
+					var newObject = window.base.cloneForm(self.submitData);
+					
+					if (window.base.checkComplete(newObject)) {						
+						const callback = (res) => {
+							if (res.solely_code == 100000) {
+								alert(res.msg)
+								window.history.back(-1); 
+							} else {
+								alert(res.msg)
+							}
+						}
+						window.base.userInfoUpdate(postData, callback);
+					} else {
+						alert('请补全信息', 'none')
+					};
+				},
 				
 		    }
 		});

@@ -61,6 +61,9 @@
 .ql-editor ul {
   padding-left: 1.5em;
 }
+.ql-editor img {
+  max-width: 100%;
+}
 .ql-editor ol > li,
 .ql-editor ul > li {
   list-style-type: none;

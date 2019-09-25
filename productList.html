@@ -50,7 +50,7 @@
 							<p class="leng">贷款期限{{item.keywords}}</p>
 						</div>
 						<div class="right">
-							<button class="btn" type="button" @click="showAlert">立即申请</button>
+							<button class="btn" type="button" @click="showAlert(index)">立即申请</button>
 						</div>
 					</div>
 					<div class="need"><em class="xu">需</em>认证运营商可申请</div>
@@ -63,9 +63,9 @@
 		<div class="alertBox" v-if="is_show">
 			<div class="alert_cont center">
 				<div class="closebtn" @click="showAlert">×</div>
-				<h1>您还没有注册，暂时使用不了，请尽快注册哟~</h1>
+				<h1>您还没有登录，暂时使用不了，请尽快登录哟~</h1>
 				<img class="noImg" src="images/icon4.png" alt="">
-				<a class="go_btn pubBtn" href="login.html">去注册</a>
+				<a class="go_btn pubBtn" href="login.html">去登录</a>
 			</div>
 		</div>
 
@@ -132,10 +132,44 @@
 				self.getLabelData();	
 				
 		    },
+			
+			onShow(){
+				const self = this;
+				self.is_show = false
+			},
+			
 		    methods: {
-				showAlert: function(){
+				
+				close(){
+					const self = this;
+					self.is_show = false
+				},
+				
+				
+				showAlert(index){
 					var self = this;
-					self.is_show = !self.is_show
+					if(localStorage.getItem('user_token')){
+						const postData = {
+							token:localStorage.getItem('user_token'),
+							data:{
+								type:1,
+								user_no:localStorage.getItem('user_no'),
+								behavior:self.mainData[index].id,
+								thirdapp_id:2
+							}
+						};
+						const callback = (res) => {
+							if(res.solely_code==100000){
+								window.location.href = self.mainData[index].passage2
+							}else{
+								alert(res.msg)
+							}
+						};
+						window.base.addLog(postData, callback);
+						
+					}else{
+						self.is_show = true
+					}			
 				},
 				
 				change(current) {
